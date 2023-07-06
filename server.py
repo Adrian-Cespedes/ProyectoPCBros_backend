@@ -324,6 +324,10 @@ class Carrito_de_Compras(db.Model):
         return f"<Carrito_de_Compras {self.id}>"
 
 
+with app.app_context():
+    db.create_all()
+
+
 @app.route("/api/clientes", methods=["GET", "POST"])
 def route_clientes():
     if request.method == "GET":
@@ -425,7 +429,3 @@ def login():
     check = cliente is not None and bcrypt.check_password_hash(
         cliente.contrasenha, contrasenha)
     return jsonify({"check": check})
-
-
-with app.app_context():
-    db.create_all()
