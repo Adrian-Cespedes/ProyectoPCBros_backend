@@ -338,7 +338,14 @@ def route_clientes():
         clientes = Cliente.query.all()
         return jsonify(clientes)
     elif request.method == "POST":
-        cliente = Cliente(**request.json)
+        cliente = Cliente(
+            ruc=request.json["ruc"],
+            email=request.json["email"],
+            razon_social=request.json["razon_social"],
+            contrasenha=bcrypt.generate_password_hash(
+                request.json["contrasenha"]).decode("utf-8"),
+            telefono=request.json["telefono"]
+        )
         db.session.add(cliente)
         db.session.commit()
         return "SUCCESS"
