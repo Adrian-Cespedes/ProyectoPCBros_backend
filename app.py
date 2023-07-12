@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_caching import Cache
 
 app = Flask(__name__)
 app.config[
@@ -14,9 +15,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 CORS(app)
+cache = Cache(app, config={"CACHE_TYPE": "simple",
+              "CACHE_DEFAULT_TIMEOUT": 300})
 db = SQLAlchemy(app)
-
 bcrypt = Bcrypt(app)
+
+cache.init_app(app)
 
 
 @dataclass
@@ -390,9 +394,14 @@ def route_carrito(ruc):
 
 # ruta de productos
 @app.route("/api/productos", methods=["GET", "POST"])
+@cache.cached()
 def route_productos():
     if request.method == "GET":
+        cached_productos = cache.get("productos")
+        if cached_productos is not None:
+            return jsonify(cached_productos)
         productos = Producto.query.all()
+        cache.set("productos", productos)
         return jsonify(productos)
     elif request.method == "POST":
         producto = Producto(**request.json)
@@ -403,8 +412,12 @@ def route_productos():
 
 # ruta para obtener productos por categoria
 @app.route("/api/productos/<categoria>", methods=["GET"])
+@cache.cached()
 def route_productos_categoria(categoria):
     if request.method == "GET":
+        cached_productos_categoria = cache.get(categoria)
+        if cached_productos_categoria is not None:
+            return jsonify(cached_productos_categoria)
         prod = Producto.query.all()
         cat = Categoria_de.query.filter_by(
             categoria_nombre=categoria.upper()).all()
@@ -414,16 +427,16 @@ def route_productos_categoria(categoria):
             for c in cat:
                 if pr.id == c.producto_id:
                     productos_cat.append(pr)
-
+        cache.set(categoria, productos_cat)
         return jsonify(productos_cat)
 
 
 # ruta para verificar contrasenha
-@app.route('/api/login', methods=['POST'])
+@app.route("/api/login", methods=["POST"])
 def login():
     data = request.json
-    ruc = data.get('ruc')
-    contrasenha = data.get('contrasenha')
+    ruc = data.get("ruc")
+    contrasenha = data.get("contrasenha")
 
     cliente = Cliente.query.get(ruc)
     check = cliente is not None and bcrypt.check_password_hash(
