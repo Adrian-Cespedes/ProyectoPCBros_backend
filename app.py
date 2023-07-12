@@ -33,7 +33,7 @@ class Cliente(db.Model):
 
     __tablename__ = "cliente"
     ruc = db.Column(db.String(11), primary_key=True)
-    email = db.Column(db.String(50), unique=True)
+    email = db.Column(db.String(50))
     razon_social = db.Column(db.String(50))
     contrasenha = db.Column(db.String(200))
     telefono = db.Column(db.String(50))
