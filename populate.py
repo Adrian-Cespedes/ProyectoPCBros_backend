@@ -58,6 +58,22 @@ class Cliente(db.Model):
 
 
 @dataclass
+class Categoria_de(db.Model):
+    producto_id: int
+    categoria_nombre: str
+
+    __tablename__ = "categoria_de"
+    producto_id = db.Column(db.Integer, db.ForeignKey(
+        "producto.id"), primary_key=True)
+    categoria_nombre = db.Column(
+        db.String(50), db.ForeignKey("categoria.nombre"), primary_key=True
+    )
+
+    def __repr__(self):
+        return f"<Categoria_de {self.producto_id}>"
+
+
+@dataclass
 class Fabricante(db.Model):
     nombre: str
     pais: str
@@ -89,6 +105,17 @@ class Carrito_de_Compras(db.Model):
 
     def __repr__(self):
         return f"<Carrito_de_Compras {self.id}>"
+
+
+@dataclass
+class Categoria(db.Model):
+    nombre: str
+
+    __tablename__ = "categoria"
+    nombre = db.Column(db.String(50), primary_key=True)
+
+    def __repr__(self):
+        return f"<Categoria {self.nombre}>"
 
 
 def clear_data(session):
@@ -133,6 +160,21 @@ with app.app_context():
                    precio=2000, fabricante_nombre="Nvidia"))
     db.session.add(Producto(id=9, nombre="GTX 1660 Ti",
                    precio=3000, fabricante_nombre="Nvidia"))
+
+    db.session.add(Categoria(nombre="CPU"))
+    db.session.add(Categoria(nombre="GPU"))
+
+    db.session.commit()
+
+    db.session.add(Categoria_de(producto_id=1, categoria_nombre="CPU"))
+    db.session.add(Categoria_de(producto_id=2, categoria_nombre="CPU"))
+    db.session.add(Categoria_de(producto_id=3, categoria_nombre="CPU"))
+    db.session.add(Categoria_de(producto_id=4, categoria_nombre="GPU"))
+    db.session.add(Categoria_de(producto_id=5, categoria_nombre="GPU"))
+    db.session.add(Categoria_de(producto_id=6, categoria_nombre="GPU"))
+    db.session.add(Categoria_de(producto_id=7, categoria_nombre="GPU"))
+    db.session.add(Categoria_de(producto_id=8, categoria_nombre="GPU"))
+    db.session.add(Categoria_de(producto_id=9, categoria_nombre="GPU"))
 
     # contrasenha
     contra = bcrypt.generate_password_hash("test123").decode("utf-8")
